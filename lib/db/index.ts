@@ -1,14 +1,13 @@
-import Database from 'better-sqlite3'
-import { drizzle } from 'drizzle-orm/better-sqlite3'
-import path from 'path'
+import { drizzle } from 'drizzle-orm/libsql'
+import { createClient } from '@libsql/client'
 import * as schema from './schema'
 
-const dbPath = path.join(process.cwd(), 'data', 'crypto.db')
-const sqlite = new Database(dbPath)
+// 本地开发：TURSO_DATABASE_URL=file:./data/crypto.db（无需 token）
+// 生产环境：TURSO_DATABASE_URL=libsql://xxx.turso.io + TURSO_AUTH_TOKEN=xxx
+const client = createClient({
+  url: process.env.TURSO_DATABASE_URL ?? 'file:./data/crypto.db',
+  authToken: process.env.TURSO_AUTH_TOKEN,
+})
 
-// Enable WAL mode for better performance
-sqlite.pragma('journal_mode = WAL')
-sqlite.pragma('foreign_keys = ON')
-
-export const db = drizzle(sqlite, { schema })
+export const db = drizzle(client, { schema })
 export type DB = typeof db
